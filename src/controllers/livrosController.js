@@ -11,7 +11,6 @@ class LivroController{
     try {
 
       let {limite = 5, pagina = 1} = req.query;
-
       limite = parseInt(limite);
       pagina = parseInt(pagina);
 
