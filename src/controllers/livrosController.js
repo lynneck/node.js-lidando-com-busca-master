@@ -1,5 +1,5 @@
 import NaoEncontrado from "../erros/NaoEncontrado.js";
-import RequisicaoIncorreta from "../erros/RequisicaoIncorreta.js";
+
 
 import { autores, livros } from "../models/index.js";
 
@@ -10,25 +10,13 @@ class LivroController{
 
     try {
 
-      let {limite = 5, pagina = 1} = req.query;
-      limite = parseInt(limite);
-      pagina = parseInt(pagina);
+      const buscaLivros = livros.find();
 
-      if (limite > 0 && pagina > 0) {
-
-        const livrosResultado = await livros.find()
-          .skip((pagina - 1) * limite)
-          .limit(limite)
-          .populate ("autor")
-          .populate ("editora")
-          .exec(); 
-        res.status(200).json(livrosResultado);
-      }else{
-        next(new RequisicaoIncorreta());
       
-      }
+      req.resultado = buscaLivros;
 
-
+      next();
+      
         
     } catch (erro) {
       next(erro);
@@ -42,11 +30,13 @@ class LivroController{
       const busca = await processaBusca(req.query);
 
       if(busca !== null){
-        const livrosResultado = await livros
+        const livrosResultado = livros
         .find(busca)
         .populate("autor");
+
+        req.resultado = livrosResultado;
           
-        res.status(200).send(livrosResultado);
+       next();
         
       }else{
         res.status(200).send([]);
@@ -60,11 +50,10 @@ class LivroController{
   static listarLivrosPorId = async (req, res, next) => {
     try {
         const id = req.params.id;
-        const livroResultado = await livros.findById(id)
-        
-          .populate ("autor", "nome")
-          .populate ("editora")
-    
+        const livroResultado = await livros
+        .findById(id, {}, {autopopulate:false})
+        .populate("autor","nome")
+                       
           .exec();
       if(livroResultado !== null){  
         res.status(200).send(livroResultado);
